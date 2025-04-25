@@ -1,33 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatelessWidget {
-  final List<String> categories = [
-    'Apartments',
-    'Houses',
-    'Studios',
-    'Villas',
-    'Short-Term Rentals',
-    'Long-Term Rentals',
-    'Offices',
-    'Commercial Properties',
-    'Businesses for Sale',
-    'Land/Plots'
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Nadland')),
-      body: ListView.builder(
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(categories[index]),
-            onTap: () {
-              // Navigate to listings for this category
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('listings').orderBy('createdAt', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return Center(child: Text('Error loading listings'));
+          if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+
+          final listings = snapshot.data!.docs;
+
+          if (listings.isEmpty) return Center(child: Text('No listings yet'));
+
+          return ListView.builder(
+            itemCount: listings.length,
+            itemBuilder: (context, index) {
+              final data = listings[index].data() as Map<String, dynamic>;
+              return Card(
+                margin: EdgeInsets.all(10),
+                child: ListTile(
+                  title: Text(data['title'] ?? 'No title'),
+                  subtitle: Text("${data['type'] ?? 'Type'} - ${data['location'] ?? 'Location'}"),
+                  trailing: Text("\€${data['price']?.toStringAsFixed(0) ?? '0'}"),
+                  onTap: () {
+                    // TODO: Navigate to detail screen
+                  },
+                ),
+              );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () => Navigator.pushNamed(context, '/create'),
       ),
     );
   }
