@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'listing_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -27,7 +28,12 @@ class HomeScreen extends StatelessWidget {
                   subtitle: Text("${data['type'] ?? 'Type'} - ${data['location'] ?? 'Location'}"),
                   trailing: Text("\€${data['price']?.toStringAsFixed(0) ?? '0'}"),
                   onTap: () {
-                    // TODO: Navigate to detail screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ListingDetailScreen(listing: data),
+                      ),
+                    );
                   },
                 ),
               );
